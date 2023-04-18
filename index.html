@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Image Metadata Remover</title>
+  <!-- Подключаем Bootstrap -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body>
+  <div class="container mt-5">
+    <h1>Удаление метаданных изображения</h1>
+    <hr>
+    <form id="form">
+      <div class="form-group">
+        <label for="image">Загрузить изображение:</label>
+        <input type="file" class="form-control-file" id="image" name="image">
+      </div>
+      <button type="button" class="btn btn-primary" onclick="removeMetadata()">Удалить метаданные</button>
+      <button type="button" class="btn btn-secondary" onclick="reset()">Перезагрузить</button>
+    </form>
+    <hr>
+    <div class="mt-3">
+      <h3 class="text-center">Изображение результата:</h3>
+      <img id="output-image" class="mx-auto d-block" style="max-height: 400px;">
+    </div>
+  </div>
+
+  <!-- Подключаем jQuery и Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <!-- Наш скрипт для удаления метаданных -->
+  <script>
+    function removeMetadata() {
+      var inputImage = document.getElementById('image');
+      if (inputImage.files && inputImage.files[0]) {
+        var reader = new FileReader();
+        reader.readAsDataURL(inputImage.files[0]);
+        reader.onload = function(e) {
+          var img = new Image();
+          img.src = e.target.result;
+          img.onload = function() {
+            var latitude = 0,
+              longitude = 0;
+            EXIF.getData(img, function() {
+              latitude = EXIF.getTag(this, "GPSLatitude");
+              longitude = EXIF.getTag(this, "GPSLongitude");
+            });
+            var canvas = document.createElement("canvas");
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            var dataURL = canvas.toDataURL("image/png", 1.0);
+            var outputImage = document.getElementById('output-image');
+            outputImage.src = dataURL;
+          }
+        };
+      }
+    }
+
+    function reset() {
+      var inputImage = document.getElementById('image');
+      inputImage.value = "";
+      var outputImage = document.getElementById('output-image');
+      outputImage.src = "";
+    }
+  </script>
+</body>
+
+</html>
